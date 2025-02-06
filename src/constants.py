@@ -15,7 +15,8 @@ LANG_EN = {
     "COMMAND_ERROR": "You must enter a number or a valid command.",
     "PYMIXER_ERROR": "Error: No audio device found.",
     "0_BPM": "Ah finally, 0 BPM.",
-    "DECIMAL_ERROR_MSG": "You must enter a whole number."
+    "DECIMAL_ERROR_MSG": "You must enter a whole number.",
+    "NOWAVE_FILE": f"{SOUND_FILE} not found"
 }
 
 # Current language selection
