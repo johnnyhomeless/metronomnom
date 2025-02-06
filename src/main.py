@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from constants import (MIN_BPM,
                       MAX_BPM,
                       SOUND_FILE,
@@ -43,3 +44,6 @@ def run_metronome():
 
 if __name__ == "__main__":
     run_metronome()
+=======
+# test
+>>>>>>> 124b78bc4a62a959b4b438ba907f6a9cbbf125ce
