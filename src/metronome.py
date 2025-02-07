@@ -17,13 +17,17 @@ class Metronome:
         except pygame.error:
             print(CURRENT_LANG["PYMIXER_ERROR"])
             return
+    
+    def load_sound(self):
+        if check_wav_file():
+            self.sound = pygame.mixer.Sound(SOUND_FILE)
+            return True
+        else:
+            print(CURRENT_LANG["NOWAVE_FILE"])
+            return False
 
 
-def checkwavefile():
+def check_wav_file():
     path = Path(SOUND_FILE)
-
-    if path.is_file():
-        return True
-    print(CURRENT_LANG["NOWAVE_FILE"])
-    return False
+    return path.is_file()
         
