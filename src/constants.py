@@ -10,6 +10,7 @@ LANG_EN = {
     "PROMPT_BPM": "Enter BPM (or 'q' to quit, 's' to stop): ",
     "GOODBYE_MSG": "Goodbye!",
     "INVALID_BPM_MSG": f"Please enter a number between {MIN_BPM} and {MAX_BPM}",
+    "INVALID_BPM_INIT": f"BPM must be between {MIN_BPM} and {MAX_BPM}",
     "METRONOME_STARTED_MSG": "Metronome started. Press 's' to stop.",
     "METRONOME_STOPPED_MSG": "Metronome stopped.",
     "COMMAND_ERROR": "You must enter a number or a valid command.",
