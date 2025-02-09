@@ -1,70 +1,66 @@
-import os
-os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
-
 import unittest
 from unittest.mock import patch, MagicMock
-import pygame
-from pathlib import Path
-from metronome import Metronome, check_wav_file
-from constants import SOUND_FILE, CURRENT_LANG
-from io import StringIO
-import sys
+from metronome import Metronome
+from constants import CURRENT_LANG, SOUND_FILE, MIN_BPM, MAX_BPM
 
 class TestMetronome(unittest.TestCase):
-    def setUp(self):
-        # Capture stdout
-        self.held_output = StringIO()
-        self.old_stdout = sys.stdout
-        sys.stdout = self.held_output
+    
+    @patch("metronome.pygame.mixer")
+    def test_initialization_valid_bpm(self, mock_mixer):
+        mock_mixer.init.return_value = None
+        metronome = Metronome(120)
+        self.assertEqual(metronome.bpm, 120)
+        self.assertFalse(metronome.is_running)
+        self.assertIsNotNone(metronome.interval)
+    
+    def test_initialization_invalid_bpm(self):
+        with self.assertRaises(ValueError) as context:
+            Metronome(MIN_BPM - 1)
+        self.assertEqual(str(context.exception), CURRENT_LANG["INVALID_BPM_INIT"])
+        
+        with self.assertRaises(ValueError) as context:
+            Metronome(MAX_BPM + 1)
+        self.assertEqual(str(context.exception), CURRENT_LANG["INVALID_BPM_INIT"])
+    
+    @patch("metronome.pygame.mixer")
+    def test_load_sound_file_not_found(self, mock_mixer):
+        mock_mixer.init.return_value = None
+        with patch("metronome.Path.is_file", return_value=False), patch("builtins.print") as mock_print:
+            metronome = Metronome(120)
+            self.assertIsNone(metronome.sound)
+            mock_print.assert_called_with(CURRENT_LANG["NOWAVE_FILE"])
+    
+    @patch("metronome.pygame.mixer")
+    def test_load_sound_file_found(self, mock_mixer):
+        mock_mixer.init.return_value = None
+        mock_mixer.Sound.return_value = MagicMock()
+        with patch("metronome.Path.is_file", return_value=True):
+            metronome = Metronome(120)
+            self.assertIsNotNone(metronome.sound)
+    
+    @patch("metronome.pygame.mixer")
+    def test_start_metronome(self, mock_mixer):
+        mock_mixer.init.return_value = None
+        mock_mixer.Sound.return_value = MagicMock()
+        with patch("metronome.Path.is_file", return_value=True):
+            metronome = Metronome(120)
+            with patch("builtins.print") as mock_print:
+                metronome.start()
+                self.assertTrue(metronome.is_running)
+                mock_print.assert_any_call(f"{CURRENT_LANG['METRONOME_STARTED_MSG']} 120 BPM")
+            metronome.stop()
+    
+    @patch("metronome.pygame.mixer")
+    def test_stop_metronome(self, mock_mixer):
+        mock_mixer.init.return_value = None
+        mock_mixer.Sound.return_value = MagicMock()
+        with patch("metronome.Path.is_file", return_value=True):
+            metronome = Metronome(120)
+            metronome.start()
+            with patch("builtins.print") as mock_print:
+                metronome.stop()
+                self.assertFalse(metronome.is_running)
+                mock_print.assert_any_call(f"{CURRENT_LANG['METRONOME_STOPPED_MSG']}")
 
-    def tearDown(self):
-        # Restore stdout
-        sys.stdout = self.old_stdout
-
-    def test_pygame_hide_prompt(self):
-        self.assertEqual(os.environ.get('PYGAME_HIDE_SUPPORT_PROMPT'), "hide")
-
-    @patch('pygame.mixer.init')
-    def test_metronome_init_success(self, mock_init):
-        mock_init.return_value = None
-        metronome = Metronome()
-        mock_init.assert_called_once()
-        self.assertEqual(self.held_output.getvalue(), "")
-
-    @patch('pygame.mixer.init')
-    def test_metronome_init_failure(self, mock_init):
-        mock_init.side_effect = pygame.error
-        metronome = Metronome()
-        mock_init.assert_called_once()
-        self.assertEqual(self.held_output.getvalue(), CURRENT_LANG["PYMIXER_ERROR"] + "\n")
-
-    def test_check_wav_file_when_file_exists(self):
-        with patch.object(Path, 'is_file', return_value=True):
-            self.assertTrue(check_wav_file())
-            self.assertEqual(self.held_output.getvalue(), "")
-
-    def test_check_wav_file_when_file_not_exists(self):
-        with patch.object(Path, 'is_file', return_value=False):
-            self.assertFalse(check_wav_file())
-            self.assertEqual(self.held_output.getvalue(), "")
-
-    @patch('pygame.mixer.Sound')
-    @patch('metronome.check_wav_file', return_value=True)
-    def test_load_sound_success(self, mock_check, mock_sound):
-        metronome = Metronome()
-        result = metronome.load_sound()
-        self.assertTrue(result)
-        mock_check.assert_called_once()
-        mock_sound.assert_called_once_with(SOUND_FILE)
-        self.assertEqual(self.held_output.getvalue(), "")
-
-    @patch('metronome.check_wav_file', return_value=False)
-    def test_load_sound_failure(self, mock_check):
-        metronome = Metronome()
-        result = metronome.load_sound()
-        self.assertFalse(result)
-        mock_check.assert_called_once()
-        self.assertEqual(self.held_output.getvalue(), CURRENT_LANG["NOWAVE_FILE"] + "\n")
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
