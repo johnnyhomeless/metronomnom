@@ -42,22 +42,24 @@ class Metronome:
     
     def stop(self):
         if self.is_running:
-            self.is_running = False
-            if self.sound:
-                self.sound.stop()
-            if self.beat_thread:
-                self.beat_thread.join()
+            self.is_running = False  # Tell thread to stop
+            if self.beat_thread and self.beat_thread.is_alive():
+                self.beat_thread.join(timeout=0.01)  # Avoid blocking too long
             pygame.mixer.quit()
-    
+
+        
     def play_beats(self):
+        next_beat_time = time.perf_counter()
+        
         while self.is_running:
-            start_time = time.time()
             if self.sound:
                 self.sound.play()
-            elapsed_time = time.time() - start_time
-            sleep_time = self.interval - elapsed_time
-            if sleep_time > 0:
-                time.sleep(sleep_time)
+            
+            next_beat_time += self.interval  # Schedule next beat precisely
+            
+            while self.is_running and time.perf_counter() < next_beat_time:
+                time.sleep(0.001)  # Small sleep to reduce CPU usage
+
     
     def play_sound(self):
         if self.sound:

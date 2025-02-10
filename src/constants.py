@@ -1,7 +1,9 @@
+from pathlib import Path
+
 # Technical constants (no language needed)
 MIN_BPM = 10
 MAX_BPM = 400
-SOUND_FILE = "src/sounds/4c.wav"
+SOUND_FILE = str(Path(__file__).parent / "sounds/4c.wav")
 QUIT_COMMAND = "q"
 STOP_COMMAND = "s"
 
