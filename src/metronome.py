@@ -2,11 +2,10 @@ import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 
 import pygame.mixer
-from pathlib import Path
 import time
 import threading
+from pathlib import Path
 from constants import (SOUND_FILE, CURRENT_LANG, MIN_BPM, MAX_BPM)
-
 
 class Metronome:
     def __init__(self, bpm):
@@ -27,10 +26,17 @@ class Metronome:
         
         self.load_sound()
     
+    def load_sound(self):
+        path = Path(SOUND_FILE)
+        if path.is_file():
+            self.sound = pygame.mixer.Sound(SOUND_FILE)
+        else:
+            print(CURRENT_LANG["NOWAVE_FILE"])
+            self.sound = None
+    
     def start(self):
         if not self.is_running and self.sound:
             self.is_running = True
-            print(f"{CURRENT_LANG['METRONOME_STARTED_MSG']} {self.bpm} BPM")
             self.beat_thread = threading.Thread(target=self.play_beats)
             self.beat_thread.start()
     
@@ -42,22 +48,24 @@ class Metronome:
             if self.beat_thread:
                 self.beat_thread.join()
             pygame.mixer.quit()
-            print(CURRENT_LANG["METRONOME_STOPPED_MSG"])
     
     def play_beats(self):
         while self.is_running:
+            start_time = time.time()
             if self.sound:
                 self.sound.play()
-            time.sleep(self.interval)
-    
-    def load_sound(self):
-        path = Path(SOUND_FILE)
-        if path.is_file():
-            self.sound = pygame.mixer.Sound(SOUND_FILE)
-        else:
-            print(CURRENT_LANG["NOWAVE_FILE"])
-            self.sound = None
+            elapsed_time = time.time() - start_time
+            sleep_time = self.interval - elapsed_time
+            if sleep_time > 0:
+                time.sleep(sleep_time)
     
     def play_sound(self):
         if self.sound:
             self.sound.play()
+    
+    def update_bpm(self, new_bpm):
+        if new_bpm is None or new_bpm < MIN_BPM or new_bpm > MAX_BPM:
+            raise ValueError(CURRENT_LANG["INVALID_BPM_INIT"])
+        
+        self.bpm = new_bpm
+        self.interval = 60 / new_bpm
