@@ -54,6 +54,7 @@ def run_metronome():
                     print(f"{CURRENT_LANG['METRONOME_STARTED_MSG']} {result} BPM")
                 else:
                     metronome_instance.update_bpm(result)
+                    print(CURRENT_LANG["TEMPO_CHANGE_MSG"].format(result))
             else:
                 print(result)
     
