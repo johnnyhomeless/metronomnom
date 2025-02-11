@@ -3,7 +3,7 @@ from pathlib import Path
 # Technical constants (no language needed)
 MIN_BPM = 10
 MAX_BPM = 400
-SOUND_FILE = str(Path(__file__).parent / "sounds/4c.wav")
+SOUND_FILE = str(Path(__file__).parent / "sounds/4d.wav")
 SOUND_FILE_LO = str(Path(__file__).parent / "sounds/4d.wav")
 QUIT_COMMAND = "q"
 STOP_COMMAND = "s"
@@ -11,7 +11,7 @@ EIGHT_COMMAND = "c"
 
 # Language-specific messages
 LANG_EN = {
-    "PROMPT_BPM": "Enter BPM (or 'q' to quit, 's' to stop, 'c' to toggle eight notes): ",
+    "PROMPT_BPM": "Enter BPM (or 'q' to quit, 's' to stop): ",
     "GOODBYE_MSG": "Goodbye!",
     "INVALID_BPM_MSG": f"Please enter a number between {MIN_BPM} and {MAX_BPM}",
     "INVALID_BPM_INIT": f"BPM must be between {MIN_BPM} and {MAX_BPM}",

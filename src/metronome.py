@@ -5,7 +5,7 @@ import pygame.mixer
 import time
 import threading
 from pathlib import Path
-from constants import (SOUND_FILE, SOUND_FILE_LO, CURRENT_LANG, MIN_BPM, MAX_BPM)
+from constants import (SOUND_FILE, CURRENT_LANG, MIN_BPM, MAX_BPM)
 
 class Metronome:
     def __init__(self, bpm):
@@ -17,8 +17,6 @@ class Metronome:
         self.interval = 60 / self.bpm
         self.sound = None
         self.beat_thread = None
-        self.eight_notes_on = False
-        self.sound_lo = None        
         
         try:
             pygame.mixer.init()
@@ -29,20 +27,12 @@ class Metronome:
         self.load_sound()
     
     def load_sound(self):
-        main_path = Path(SOUND_FILE)
-        lo_path = Path(SOUND_FILE_LO)
-        
-        if main_path.is_file():
+        path = Path(SOUND_FILE)
+        if path.is_file():
             self.sound = pygame.mixer.Sound(SOUND_FILE)
         else:
             print(CURRENT_LANG["NOWAVE_FILE"])
             self.sound = None
-            
-        if lo_path.is_file():
-            self.sound_lo = pygame.mixer.Sound(SOUND_FILE_LO)
-        else:
-            print(CURRENT_LANG["NOWAVE_FILE"])
-            self.sound_lo = None
     
     def start(self):
         if not self.is_running and self.sound:
@@ -52,36 +42,22 @@ class Metronome:
     
     def stop(self):
         if self.is_running:
-            self.is_running = False  # Tell thread to stop
-            if self.beat_thread and self.beat_thread.is_alive():
-                self.beat_thread.join(timeout=0.01)  # Avoid blocking too long
+            self.is_running = False
+            if self.sound:
+                self.sound.stop()
+            if self.beat_thread:
+                self.beat_thread.join()
             pygame.mixer.quit()
-
-        
+    
     def play_beats(self):
-        next_beat_time = time.perf_counter()
-        is_main_beat = True
-        
         while self.is_running:
-            current_time = time.perf_counter()
-            
-            if current_time >= next_beat_time:
-                if is_main_beat:
-                    if self.sound:
-                        self.sound.play()
-                elif self.eight_notes_on and self.sound_lo:
-                    self.sound_lo.play()
-                
-                if self.eight_notes_on:
-                    next_beat_time += self.interval / 2
-                    is_main_beat = not is_main_beat
-                else:
-                    next_beat_time += self.interval
-                    is_main_beat = True
-                    
-            sleep_time = max(0, next_beat_time - time.perf_counter())
-            time.sleep(sleep_time)
-
+            start_time = time.time()
+            if self.sound:
+                self.sound.play()
+            elapsed_time = time.time() - start_time
+            sleep_time = self.interval - elapsed_time
+            if sleep_time > 0:
+                time.sleep(sleep_time)
     
     def play_sound(self):
         if self.sound:
