@@ -4,10 +4,8 @@ from pathlib import Path
 MIN_BPM = 10
 MAX_BPM = 400
 SOUND_FILE = str(Path(__file__).parent / "sounds/4d.wav")
-SOUND_FILE_LO = str(Path(__file__).parent / "sounds/4d.wav")
 QUIT_COMMAND = "q"
 STOP_COMMAND = "s"
-EIGHT_COMMAND = "c"
 
 # Language-specific messages
 LANG_EN = {
@@ -17,8 +15,6 @@ LANG_EN = {
     "INVALID_BPM_INIT": f"BPM must be between {MIN_BPM} and {MAX_BPM}",
     "METRONOME_STARTED_MSG": "Metronome started. Press 's' to stop.",
     "METRONOME_STOPPED_MSG": "Metronome stopped.",
-    "SUBDIVISION_ON": "Eight notes mode ON",
-    "SUBDIVISION_OFF": "Eight notes mode OFF",
     "COMMAND_ERROR": "You must enter a number or a valid command.",
     "PYMIXER_ERROR": "Error: No audio device found.",
     "0_BPM": "Ah finally, 0 BPM.",

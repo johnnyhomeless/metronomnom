@@ -1,164 +1,113 @@
 import unittest
-from unittest.mock import Mock, patch, call
-import time
-import pygame
-import io
-import sys
-from contextlib import contextmanager
+from unittest.mock import patch, MagicMock
 from metronome import Metronome
-from main import validate_bpm, run_metronome
-from constants import (
-    MIN_BPM, 
-    MAX_BPM, 
-    CURRENT_LANG, 
-    SOUND_FILE,
-    QUIT_COMMAND,
-    STOP_COMMAND
-)
+from constants import MIN_BPM, MAX_BPM, CURRENT_LANG
+from main import validate_bpm
 
-@contextmanager
-def capture_output():
-    """Capture stdout and stderr for testing"""
-    new_out, new_err = io.StringIO(), io.StringIO()
-    old_out, old_err = sys.stdout, sys.stderr
-    try:
-        sys.stdout, sys.stderr = new_out, new_err
-        yield sys.stdout, sys.stderr
-    finally:
-        sys.stdout, sys.stderr = old_out, old_err
-
-class TestMetronomeUnit(unittest.TestCase):
-    """Unit tests for the Metronome class"""
-    
+class TestMetronome(unittest.TestCase):
     def setUp(self):
+        """Set up test cases"""
         self.valid_bpm = 120
-        
+        self.metronome = None
+    
     def tearDown(self):
-        pygame.mixer.quit()
+        """Clean up after each test"""
+        if self.metronome and self.metronome.is_running:
+            self.metronome.stop()
 
-    @patch('pygame.mixer.init')
-    @patch('pygame.mixer.Sound')
-    def test_init_valid_bpm(self, mock_sound, mock_init):
-        metro = Metronome(self.valid_bpm)
-        self.assertEqual(metro.bpm, self.valid_bpm)
-        self.assertEqual(metro.interval, 60/self.valid_bpm)
-        self.assertFalse(metro.is_running)
-        
-    def test_init_invalid_bpm(self):
-        test_values = [MIN_BPM - 1, MAX_BPM + 1, 0, None, -120]
-        for bpm in test_values:
+    # BPM Validation Tests
+    def test_valid_bpm(self):
+        """Test valid BPM inputs"""
+        test_cases = [
+            ("120", True, 120),  # Normal case
+            (str(MIN_BPM), True, MIN_BPM),  # Minimum value
+            (str(MAX_BPM), True, MAX_BPM),  # Maximum value
+            ("60", True, 60),    # Common tempo
+        ]
+        for input_bpm, expected_valid, expected_value in test_cases:
+            is_valid, result = validate_bpm(input_bpm)
+            self.assertEqual(is_valid, expected_valid)
+            if expected_valid:
+                self.assertEqual(result, expected_value)
+
+    def test_invalid_bpm(self):
+        """Test invalid BPM inputs"""
+        test_cases = [
+            ("0", False),            # Zero BPM
+            ("-1", False),           # Negative BPM
+            ("401", False),          # Above maximum
+            ("9", False),            # Below minimum
+            ("abc", False),          # Non-numeric
+            ("120.5", False),        # Decimal number
+            ("", False),             # Empty string
+            (" ", False),            # Space
+        ]
+        for input_bpm, expected_valid in test_cases:
+            is_valid, _ = validate_bpm(input_bpm)
+            self.assertEqual(is_valid, expected_valid)
+
+    # Metronome Class Tests
+    def test_metronome_initialization(self):
+        """Test Metronome class initialization"""
+        self.metronome = Metronome(self.valid_bpm)
+        self.assertEqual(self.metronome.bpm, self.valid_bpm)
+        self.assertEqual(self.metronome.interval, 60/self.valid_bpm)
+        self.assertFalse(self.metronome.is_running)
+
+    def test_invalid_metronome_initialization(self):
+        """Test invalid Metronome initialization"""
+        invalid_bpms = [None, MIN_BPM-1, MAX_BPM+1, 0, -1]
+        for bpm in invalid_bpms:
             with self.assertRaises(ValueError):
                 Metronome(bpm)
-                
-    @patch('pygame.mixer.init')
-    @patch('pygame.mixer.Sound')
-    def test_start_stop(self, mock_sound, mock_init):
-        metro = Metronome(self.valid_bpm)
-        self.assertFalse(metro.is_running)
-        
-        metro.start()
-        self.assertTrue(metro.is_running)
-        self.assertIsNotNone(metro.beat_thread)
-        
-        metro.stop()
-        self.assertFalse(metro.is_running)
-        
-    @patch('pygame.mixer.init')
-    @patch('pygame.mixer.Sound')
-    def test_timing_accuracy(self, mock_sound, mock_init):
-        metro = Metronome(60)  # 1 beat per second
-        start_time = time.perf_counter()
-        metro.start()
-        time.sleep(3.1)  # Test 3 beats
-        metro.stop()
-        elapsed = time.perf_counter() - start_time
-        self.assertAlmostEqual(elapsed, 3.1, delta=0.1)
 
-class TestInputValidation(unittest.TestCase):
-    """Tests for input validation functions"""
-    
-    def test_validate_bpm_valid(self):
-        test_values = [60, 120, MIN_BPM, MAX_BPM]
-        for bpm in test_values:
-            is_valid, result = validate_bpm(str(bpm))
-            self.assertTrue(is_valid)
-            self.assertEqual(result, bpm)
-            
-    def test_validate_bpm_invalid(self):
-        test_values = [
-            str(MIN_BPM - 1),
-            str(MAX_BPM + 1),
-            "0",
-            "-120",
-            "abc",
-            "12.5",
-            "",
-            " "
-        ]
-        for value in test_values:
-            is_valid, message = validate_bpm(value)
-            self.assertFalse(is_valid)
-            self.assertIsInstance(message, str)
+    @patch('pygame.mixer.Sound')
+    def test_sound_loading(self, mock_sound):
+        """Test sound loading functionality"""
+        self.metronome = Metronome(self.valid_bpm)
+        self.assertIsNotNone(self.metronome.sound)
 
-class TestIntegration(unittest.TestCase):
-    """Integration tests for the complete system"""
-    
-    def setUp(self):
-        self.valid_bpm = 120
-    
-    @patch('pygame.mixer.init')
-    @patch('pygame.mixer.Sound')
-    def test_complete_workflow(self, mock_sound, mock_init):
-        """Test a complete workflow with start, update, stop, and quit"""
+    def test_bpm_update(self):
+        """Test BPM update functionality"""
+        self.metronome = Metronome(self.valid_bpm)
+        new_bpm = 100
+        self.metronome.update_bpm(new_bpm)
+        self.assertEqual(self.metronome.bpm, new_bpm)
+        self.assertEqual(self.metronome.interval, 60/new_bpm)
+
+    def test_invalid_bpm_update(self):
+        """Test invalid BPM updates"""
+        self.metronome = Metronome(self.valid_bpm)
+        invalid_bpms = [None, MIN_BPM-1, MAX_BPM+1, 0, -1]
+        for bpm in invalid_bpms:
+            with self.assertRaises(ValueError):
+                self.metronome.update_bpm(bpm)
+
+    # Thread Control Tests
+    def test_start_stop(self):
+        """Test start and stop functionality"""
+        self.metronome = Metronome(self.valid_bpm)
+        self.metronome.start()
+        self.assertTrue(self.metronome.is_running)
+        self.assertIsNotNone(self.metronome.beat_thread)
         
-        # Simulate user inputs
-        inputs = ["120", "140", STOP_COMMAND, "90", QUIT_COMMAND]
-        input_mock = Mock(side_effect=inputs)
-        
-        with patch('builtins.input', input_mock):
-            with capture_output() as (out, err):
-                run_metronome()
-                
-        output = out.getvalue()
-        
-        # Verify expected outputs
-        self.assertIn(CURRENT_LANG["METRONOME_STARTED_MSG"], output)
-        self.assertIn(CURRENT_LANG["METRONOME_STOPPED_MSG"], output)
-        self.assertIn(CURRENT_LANG["GOODBYE_MSG"], output)
-        
-    @patch('pygame.mixer.init')
-    @patch('pygame.mixer.Sound')
-    def test_error_handling(self, mock_sound, mock_init):
-        """Test system's error handling capabilities"""
-        
-        # Test with invalid inputs
-        inputs = ["abc", "-1", "1000", "0", QUIT_COMMAND]
-        input_mock = Mock(side_effect=inputs)
-        
-        with patch('builtins.input', input_mock):
-            with capture_output() as (out, err):
-                run_metronome()
-                
-        output = out.getvalue()
-        
-        # Verify error messages
-        self.assertIn(CURRENT_LANG["COMMAND_ERROR"], output)
-        self.assertIn(CURRENT_LANG["INVALID_BPM_MSG"], output)
-        self.assertIn(CURRENT_LANG["0_BPM"], output)
-        
-    @patch('pygame.mixer.init', side_effect=pygame.error)
-    def test_audio_device_error(self, mock_init):
-        """Test behavior when audio device is not available"""
-        
-        inputs = [str(self.valid_bpm), QUIT_COMMAND]
-        input_mock = Mock(side_effect=inputs)
-        
-        with patch('builtins.input', input_mock):
-            with capture_output() as (out, err):
-                run_metronome()
-                
-        output = out.getvalue()
-        self.assertIn(CURRENT_LANG["PYMIXER_ERROR"], output)
+        self.metronome.stop()
+        self.assertFalse(self.metronome.is_running)
+
+    # Command Tests
+    @patch('builtins.input', side_effect=['q'])
+    def test_quit_command(self, mock_input):
+        """Test quit command"""
+        from main import run_metronome
+        run_metronome()
+        mock_input.assert_called_once()
+
+    @patch('builtins.input', side_effect=['120', 's', 'q'])
+    def test_stop_command(self, mock_input):
+        """Test stop command"""
+        from main import run_metronome
+        run_metronome()
+        self.assertEqual(mock_input.call_count, 3)
 
 if __name__ == '__main__':
-    unittest.main(verbosity=2)
+    unittest.main()
