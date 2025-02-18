@@ -1,0 +1,42 @@
+Screen {
+    layout: vertical;
+    background: black;
+}
+
+.box {
+    height: 1fr;
+    border: solid green;
+}
+
+/* Add centering for beat display */
+#beat {
+    text-style: bold;
+    content-align: center middle;
+    text-align: center;
+    border: none;
+}
+
+#bpm {
+    content-align: center middle;
+    text-align: center;
+}
+
+
+.input-container {
+    height: 1fr;
+    border: solid green;
+}
+
+.input-container Static {
+    padding: 1 2;
+    width: auto;
+}
+
+.input-container Input {
+    color: black 100%;
+    background: black 100%;
+    border: solid green;
+    margin: 0;
+    padding: 0;
+    width: auto;
+}
