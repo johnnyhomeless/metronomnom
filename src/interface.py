@@ -1,10 +1,15 @@
 from textual.app import App, ComposeResult
-from textual.widgets import Static, Input
+from textual.widgets import Static, Input, Header, Select
 from textual.containers import Horizontal
 from constants import CURRENT_LANG, QUIT_COMMAND, STOP_COMMAND
 from main import validate_bpm
 from metronome import Metronome
 from textual import on
+
+LINES = """4/4
+3/4
+2/4
+""".splitlines()
 
 class MetroUI(App):
     """A simple Textual-based UI for controlling the metronome."""
@@ -22,7 +27,7 @@ class MetroUI(App):
         yield Static("Status", id="status", classes="box")
         yield Horizontal(
             Static(CURRENT_LANG["PROMPT_BPM"]),
-            Input(placeholder="", id="bpm_input", classes="input", type="text", max_length=3),
+            Input(placeholder="Type here :)", id="bpm_input", classes="input", type="text", max_length=3),
             classes="input-container"
         )
 
