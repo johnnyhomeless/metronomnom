@@ -19,6 +19,8 @@ class MetroUI(App):
     def __init__(self):
         super().__init__()
         self.metronome = None 
+        self.beats_per_measure = 4 
+        self.beat_unit = 4 
 
     def compose(self) -> ComposeResult:
         """Defines the UI layout and elements."""
@@ -28,6 +30,7 @@ class MetroUI(App):
         yield Horizontal(
             Static(CURRENT_LANG["PROMPT_BPM"]),
             Input(placeholder="Type here :)", id="bpm_input", classes="input", type="text", max_length=3),
+            Select(((line, line) for line in LINES), value="4/4"),
             classes="input-container"
         )
 
@@ -66,7 +69,7 @@ class MetroUI(App):
         if is_valid:
             try:
                 if self.metronome is None:
-                    self.metronome = Metronome(result, on_beat=self.update_beat_display)
+                    self.metronome = Metronome(result, on_beat=self.update_beat_display, beats_per_measure=self.beats_per_measure)
                     self.metronome.start()
                     status.update(f"{CURRENT_LANG['METRONOME_STARTED_MSG']} {result} BPM")
                 else:
@@ -83,6 +86,21 @@ class MetroUI(App):
             status.update(result)  # Display validation error
         
         input_field.value = ""
+
+    @on(Select.Changed)
+    def time_change(self, event: Select.Changed) -> None:
+        beats, unit = event.value.split("/")
+        self.beats_per_measure = int(beats)
+        self.beat_unit = int(unit)
+
+        if self.metronome:
+            self.metronome.beats_per_measure = self.beats_per_measure
+            self.metronome.current_beat = 1
+        
+        status = self.query_one("#status", Static)
+
+        if self.metronome:
+            status.update(CURRENT_LANG["TIME_SIG_CHANGE"].format(beats, unit))
 
 if __name__ == "__main__":
     app = MetroUI()

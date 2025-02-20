@@ -8,7 +8,7 @@ from pathlib import Path
 from constants import (SOUND_FILE, CURRENT_LANG, MIN_BPM, MAX_BPM)
 
 class Metronome:
-    def __init__(self, bpm, on_beat=None):  # Fixed "None" string to None
+    def __init__(self, bpm, on_beat=None, beats_per_measure=4):  # Fixed "None" string to None
         if bpm is None or bpm < MIN_BPM or bpm > MAX_BPM:
             raise ValueError(CURRENT_LANG["INVALID_BPM_INIT"])
         
@@ -18,7 +18,7 @@ class Metronome:
         self.sound = None
         self.beat_thread = None
         self.current_beat = 1
-        self.beats_per_measure = 4
+        self.beats_per_measure = beats_per_measure
         self.on_beat = on_beat
         
         try:

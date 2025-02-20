@@ -28,6 +28,7 @@ LANG_EN = {
     "UI_BEAT_DISPLAY": "Beat: {}",
     "UI_DEFAULT_STATUS": "Enter BPM to start",
     "UI_DEFAULT_BPM": "---",
+    "TIME_SIG_CHANGE": "Time signature changed to {}/{}",
 }
 
 # Current language selection

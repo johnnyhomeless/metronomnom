@@ -8,7 +8,6 @@ Screen {
     border: solid green;
 }
 
-/* Add centering for beat display */
 #beat {
     text-style: bold;
     content-align: center middle;
@@ -21,7 +20,6 @@ Screen {
     content-align: center middle;
     text-align: center;
 }
-
 
 .input-container {
     height: 1fr;
@@ -40,4 +38,14 @@ Screen {
     margin: 0;
     padding: 0;
     width: auto;
+}
+
+.input-container Select {
+    align-horizontal: right;
+    margin: 0;
+    padding: 0;
+}
+
+.popup-container {
+    max-height: 8;
 }
