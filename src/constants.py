@@ -3,9 +3,12 @@ from pathlib import Path
 # Technical constants (no language needed)
 MIN_BPM = 10
 MAX_BPM = 400
-SOUND_FILE = str(Path(__file__).parent / "sounds/4d.wav")
+SOUND_FILE = str(Path(__file__).parent / "sounds/4c.wav")
+SOUND_FILE_UP = str(Path(__file__).parent / "sounds/4d.wav")
 QUIT_COMMAND = "q"
 STOP_COMMAND = "s"
+EIGHT_COMMAND = "e"
+TRIPLET_COMMAND = "t"
 
 # Language-specific messages
 LANG_EN = {
@@ -24,6 +27,9 @@ LANG_EN = {
     "TEMPO_CHANGE_MSG": "Tempo changed to {} BPM",
     "DECIMAL_ERROR_MSG": "You must enter a whole number.",
     "NOWAVE_FILE": f"{SOUND_FILE} not found",
+    "NOWAVE_FILE_DOWN": f"{SOUND_FILE} (downbeat sound) not found",
+    "NOWAVE_FILE_UP": f"{SOUND_FILE_UP} (upbeat sound) not found",
+    "WAV_NOT_LOADED": "Error: Sound files are not loaded.",
     "UI_VALID_BPM": "Current BPM: {}",
     "UI_BEAT_DISPLAY": "Beat: {}",
     "UI_DEFAULT_STATUS": "Enter BPM to start",

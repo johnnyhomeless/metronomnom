@@ -11,6 +11,7 @@ from metronome import Metronome
 LINES = """4/4
 3/4
 2/4
+1/4
 """.splitlines()
 
 class MetroUI(App):
@@ -28,7 +29,7 @@ class MetroUI(App):
         """Defines the UI layout and elements."""
         yield Static("Beat", id="beat", classes="box")
         yield Static("BPM: ---", id="bpm", classes="box")  # Initializes BPM box
-        yield Static("Status", id="status", classes="box")
+        yield Static("Welcome to Metronomnom :)", id="status", classes="box")
 
         yield Horizontal(
             Static(CURRENT_LANG["PROMPT_BPM"]),
