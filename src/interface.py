@@ -3,9 +3,20 @@ from textual.widgets import Static, Input, Header, Select
 from textual.containers import Horizontal
 from textual import on
 
-from constants import CURRENT_LANG, QUIT_COMMAND, STOP_COMMAND
+from constants import (
+    CURRENT_LANG, 
+    QUIT_COMMAND, 
+    STOP_COMMAND,
+    EIGHTH_COMMAND,
+    TRIPLET_COMMAND
+)
 from main import validate_bpm
-from metronome import Metronome
+from metronome import (
+    Metronome,
+    NORMAL_MODE,
+    EIGHTH_MODE,
+    TRIPLET_MODE
+)
 
 # Available time signatures
 LINES = """4/4
@@ -47,10 +58,22 @@ class MetroUI(App):
 
         if value in {QUIT_COMMAND, STOP_COMMAND}:
             self._handle_stop_or_quit(value, status)
+        elif value in {EIGHTH_COMMAND, TRIPLET_COMMAND}:
+            self._handle_mode_change(value, status)
         else:
             self._handle_bpm_change(value, status)
 
         input_field.value = ""
+
+    def _handle_mode_change(self, value: str, status: Static) -> None:
+        """Handles rhythm mode changes."""
+        if not self.metronome:
+            status.update(CURRENT_LANG["MODE_CHANGE_STOPPED"])
+            return
+            
+        mode = EIGHTH_MODE if value == EIGHTH_COMMAND else TRIPLET_MODE
+        current_mode = self.metronome.set_rhythm_mode(mode)
+        status.update(CURRENT_LANG[f"MODE_{current_mode.upper()}"])
 
     @on(Select.Changed)
     def time_change(self, event: Select.Changed) -> None:

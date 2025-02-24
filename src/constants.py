@@ -5,9 +5,10 @@ MIN_BPM = 10
 MAX_BPM = 400
 SOUND_FILE = str(Path(__file__).parent / "sounds/4c.wav")
 SOUND_FILE_UP = str(Path(__file__).parent / "sounds/4d.wav")
+SOUND_FILE_SUBDIVISION = str(Path(__file__).parent / "sounds/tripl.wav")
 QUIT_COMMAND = "q"
 STOP_COMMAND = "s"
-EIGHT_COMMAND = "e"
+EIGHTH_COMMAND = "e"
 TRIPLET_COMMAND = "t"
 
 # Language-specific messages
@@ -29,12 +30,18 @@ LANG_EN = {
     "NOWAVE_FILE": f"{SOUND_FILE} not found",
     "NOWAVE_FILE_DOWN": f"{SOUND_FILE} (downbeat sound) not found",
     "NOWAVE_FILE_UP": f"{SOUND_FILE_UP} (upbeat sound) not found",
+    "NOWAVE_FILE_SUBDIVISION": f"{SOUND_FILE_SUBDIVISION} (subdivision sound) not found",
+    "INVALID_MODE": "Invalid mode. Must be normal, eighth, or triplet.",
     "WAV_NOT_LOADED": "Error: Sound files are not loaded.",
     "UI_VALID_BPM": "Current BPM: {}",
     "UI_BEAT_DISPLAY": "Beat: {}",
     "UI_DEFAULT_STATUS": "Enter BPM to start",
     "UI_DEFAULT_BPM": "---",
     "TIME_SIG_CHANGE": "Time signature changed to {}/{}",
+    "MODE_EIGHTH": "Switched to eighth notes mode",
+    "MODE_TRIPLET": "Switched to triplet mode",
+    "MODE_NORMAL": "Switched to normal mode",
+    "MODE_CHANGE_STOPPED": "Cannot change mode while metronome is stopped",
 }
 
 # Current language selection

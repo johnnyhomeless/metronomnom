@@ -3,7 +3,16 @@ from constants import (
     MAX_BPM,
     QUIT_COMMAND,
     STOP_COMMAND,
+    EIGHTH_COMMAND,
+    TRIPLET_COMMAND,
     CURRENT_LANG
+)
+
+from metronome import (
+    Metronome,
+    NORMAL_MODE,
+    EIGHTH_MODE,
+    TRIPLET_MODE
 )
 
 from metronome import Metronome
@@ -40,6 +49,16 @@ def run_metronome():
                     break
                 
                 print(CURRENT_LANG["METRONOME_STOPPED_MSG"])
+                continue
+            
+            elif user_input in {EIGHTH_COMMAND, TRIPLET_COMMAND}:
+                if not metronome_instance:
+                    print(CURRENT_LANG["MODE_CHANGE_STOPPED"])
+                    continue
+                    
+                mode = EIGHTH_MODE if user_input == EIGHTH_COMMAND else TRIPLET_MODE
+                current_mode = metronome_instance.set_rhythm_mode(mode)
+                print(CURRENT_LANG[f"MODE_{current_mode.upper()}"])
                 continue
             
             elif user_input == "0":
