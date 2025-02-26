@@ -10,10 +10,11 @@ QUIT_COMMAND = "q"
 STOP_COMMAND = "s"
 EIGHTH_COMMAND = "e"
 TRIPLET_COMMAND = "t"
+SIXTEENTH_COMMAND = "x"
 
 # Language-specific messages
 LANG_EN = {
-    "PROMPT_BPM": "Enter BPM (or 'q' to quit, 's' to stop): ",
+    "PROMPT_BPM": "Enter BPM (or 'q' to quit, 's' to stop, 'e' for eighth notes, 't' for triplets, 'x' for sixteenth notes, '1-9' for time signature): ",
     "GOODBYE_MSG": "Goodbye!",
     "INVALID_BPM_MSG": f"Please enter a number between {MIN_BPM} and {MAX_BPM}",
     "INVALID_BPM_INIT": f"BPM must be between {MIN_BPM} and {MAX_BPM}",
@@ -31,7 +32,7 @@ LANG_EN = {
     "NOWAVE_FILE_DOWN": f"{SOUND_FILE} (downbeat sound) not found",
     "NOWAVE_FILE_UP": f"{SOUND_FILE_UP} (upbeat sound) not found",
     "NOWAVE_FILE_SUBDIVISION": f"{SOUND_FILE_SUBDIVISION} (subdivision sound) not found",
-    "INVALID_MODE": "Invalid mode. Must be normal, eighth, or triplet.",
+    "INVALID_MODE": "Invalid mode. Must be normal, eighth, triplet, or sixteenth.",
     "WAV_NOT_LOADED": "Error: Sound files are not loaded.",
     "UI_VALID_BPM": "Current BPM: {}",
     "UI_BEAT_DISPLAY": "Beat: {}",
@@ -42,6 +43,8 @@ LANG_EN = {
     "MODE_TRIPLET": "Switched to triplet mode",
     "MODE_NORMAL": "Switched to normal mode",
     "MODE_CHANGE_STOPPED": "Cannot change mode while metronome is stopped",
+    "MODE_SIXTEENTH": "Switched to sixteenth notes mode",
+    "TIME_SIG_SET": "Time signature set to {}/{}"
 }
 
 # Current language selection

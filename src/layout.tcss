@@ -1,6 +1,6 @@
 Screen {
-    layout: vertical;
-    background: black;
+    layout: grid;
+    grid-columns: 1fr 6 1fr;  /* Fixed middle column, flexible outer columns */
 }
 
 .box {
@@ -38,14 +38,4 @@ Screen {
     margin: 0;
     padding: 0;
     width: auto;
-}
-
-.input-container Select {
-    align-horizontal: right;
-    margin: 0;
-    padding: 0;
-}
-
-.popup-container {
-    max-height: 8;
 }
