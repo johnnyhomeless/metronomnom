@@ -1,6 +1,6 @@
 # Metronomnom
 
-A simple yet powerful metronome application built with Python.
+A simple metronome application built with Python.
 
 > **Note**: Metronomnom is currently in beta. I'm actively working on it, but all main features are functional.
 
