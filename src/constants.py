@@ -24,8 +24,6 @@ LANG_EN = {
     "COMMAND_ERROR": "You must enter a number or a valid command.",
     "PYMIXER_ERROR": "Error: No audio device found.",
     "0_BPM": "Ah finally, 0 BPM.",
-    "FIRST_BEAT": "►{}",
-    "OTHER_BEAT": " {}",
     "TEMPO_CHANGE_MSG": "Tempo changed to {} BPM",
     "DECIMAL_ERROR_MSG": "You must enter a whole number.",
     "NOWAVE_FILE": f"{SOUND_FILE} not found",
@@ -44,7 +42,9 @@ LANG_EN = {
     "MODE_NORMAL": "Switched to normal mode",
     "MODE_CHANGE_STOPPED": "Cannot change mode while metronome is stopped",
     "MODE_SIXTEENTH": "Switched to sixteenth notes mode",
-    "TIME_SIG_SET": "Time signature set to {}/{}"
+    "TIME_SIG_SET": "Time signature set to {}/{}",
+    "TIME_SWITCH": "Time signature set to {}/4",
+    "NOT_RUNNING": "Metronomone not running."
 }
 
 # Current language selection

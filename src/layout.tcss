@@ -21,6 +21,11 @@ Screen {
     text-align: center;
 }
 
+#time_sig {
+    text-style: bold;
+    content-align: center middle;
+    text-align: center;
+}
 .input-container {
     height: 1fr;
     border: solid green;
@@ -28,7 +33,7 @@ Screen {
 
 .input-container Static {
     padding: 1 2;
-    width: auto;
+    width: 1fr;
 }
 
 .input-container Input {
@@ -37,5 +42,5 @@ Screen {
     border: solid green;
     margin: 0;
     padding: 0;
-    width: auto;
+    width: 1fr;
 }
