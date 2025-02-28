@@ -1,4 +1,5 @@
 Screen {
+    background: black 100%;
     layout: grid;
     grid-columns: 1fr 6 1fr;  /* Fixed middle column, flexible outer columns */
 }
@@ -43,4 +44,11 @@ Screen {
     margin: 0;
     padding: 0;
     width: 1fr;
+}
+
+.input-container Button {
+    margin: 0 1;
+    width: 1fr;
+    height: auto;
+    text-style: bold;
 }

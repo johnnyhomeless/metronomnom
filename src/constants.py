@@ -44,7 +44,11 @@ LANG_EN = {
     "MODE_SIXTEENTH": "Switched to sixteenth notes mode",
     "TIME_SIG_SET": "Time signature set to {}/{}",
     "TIME_SWITCH": "Time signature set to {}/4",
-    "NOT_RUNNING": "Metronomone not running."
+    "NOT_RUNNING": "Metronomone not running.",
+    "PYGAME_INSTALL_MSG": "Please install pygame: pip install pygame",
+    "TEXTUAL_ERROR": "Error: Textual library is required for the UI version.",
+    "TEXTUAL_INSTALL_MSG": "Please install textual: pip install textual",
+    "DEPENDENCY_ERROR": "Cannot start Metronomnom due to missing requirements.",
 }
 
 # Current language selection

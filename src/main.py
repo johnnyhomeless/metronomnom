@@ -229,21 +229,41 @@ def run_metronome():
             metronome_instance.stop()
         print("\n" + CURRENT_LANG["GOODBYE_MSG"])
 
-def check_dependencies():
+def check_dependencies(check_textual=0):
+    """
+    Check if required dependencies are installed.
+    
+    Args:
+        check_textual (int, optional): If set to 1, also checks for Textual library. Defaults to 0.
+    
+    Returns:
+        bool: True if all required dependencies are available, False otherwise.
+    """
+    # Check for pygame first
     try:
         import pygame
         # Test pygame.mixer initialization
         pygame.mixer.init()
         pygame.mixer.quit()
-        return True
     except (ImportError, pygame.error):
-        print("Required dependencies are missing or audio device not available.")
-        print("Please install pygame: pip install pygame")
+        print(CURRENT_LANG["PYMIXER_ERROR"])
+        print(CURRENT_LANG["PYGAME_INSTALL_MSG"])
         return False
+    
+    # Check for textual if requested
+    if check_textual == 1:
+        try:
+            import textual
+        except ImportError:
+            print(CURRENT_LANG["TEXTUAL_ERROR"])
+            print(CURRENT_LANG["TEXTUAL_INSTALL_MSG"])
+            return False
+    
+    return True
     
 # Program entry point
 if __name__ == "__main__":
-    if check_dependencies():
+    if check_dependencies(check_textual=0):
         run_metronome()
     else:
-        print("Cannot start Metronomnom due to missing requirements.")
+        print(CURRENT_LANG["DEPENDENCY_ERROR"])

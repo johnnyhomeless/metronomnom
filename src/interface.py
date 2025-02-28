@@ -1,7 +1,8 @@
 from textual.app import App, ComposeResult
-from textual.widgets import Static, Input
+from textual.widgets import Static, Input, Button
 from textual.containers import Horizontal
 from textual import on
+import time
 
 # Import constants for commands and language settings
 from constants import (
@@ -46,6 +47,11 @@ class MetroUI(App):
         self.metronome = None  # Will hold the metronome instance when running
         self.beats_per_measure = 4  # Default time signature: 4/4
         self.beat_unit = 4  # Quarter note beat unit (fixed for now)
+        
+        # Tap tempo variables
+        self.tap_times = []  # Store timestamps of taps
+        self.max_tap_age = 5.0  # Reset taps after 5 seconds of inactivity
+        self.min_taps_required = 2  # Need at least 2 taps to calculate tempo
 
     #-----------------------------------------------------
     # UI Layout Definition
@@ -75,6 +81,7 @@ class MetroUI(App):
         yield Horizontal(
             Static(CURRENT_LANG["PROMPT_BPM"]),                 # Input prompt text
             Input(placeholder="Type here :)", id="bpm_input", classes="input", type="text", max_length=3),  # Command input field
+            Button("Tap", id="tap_button"),
             classes="input-container"
         )
 
@@ -253,11 +260,69 @@ class MetroUI(App):
         """
         self.query_one("#beat", Static).update(str(beat_number))
 
+    @on(Button.Pressed, "#tap_button")
+    def handle_tap(self, event: Button.Pressed) -> None:
+        """
+        Handle tap button presses to calculate tempo based on tap rhythm.
+        
+        Args:
+            event (Button.Pressed): The button press event
+        """
+        current_time = time.time()
+        status = self.query_one("#status", Static)
+        
+        # Remove old taps (older than max_tap_age seconds)
+        self.tap_times = [t for t in self.tap_times if current_time - t < self.max_tap_age]
+        
+        # Add the new tap
+        self.tap_times.append(current_time)
+        
+        # Calculate BPM if we have enough taps
+        if len(self.tap_times) >= self.min_taps_required:
+            bpm = self.calculate_tap_tempo()
+            
+            # Put the calculated BPM in the input field for confirmation
+            input_field = self.query_one("#bpm_input", Input)
+            input_field.value = str(bpm)
+            
+            # Focus the input field so the user can just press Enter
+            input_field.focus()
+            
+            # Update BPM display for visual feedback
+            bpm_display = self.query_one("#bpm", Static)
+            bpm_display.update(f"BPM: {bpm}")
+
+    # Add this method to calculate BPM from tap timestamps
+    def calculate_tap_tempo(self) -> int:
+        """
+        Calculate BPM based on the time between taps.
+
+        Returns:
+            int: The calculated BPM, clamped to valid range
+        """
+        # Calculate time intervals between taps
+        intervals = [self.tap_times[i] - self.tap_times[i-1] for i in range(1, len(self.tap_times))]
+       
+        # Prevent division by zero
+        if not intervals: 
+            return MIN_BPM
+         
+        # Calculate average interval
+        avg_interval = sum(intervals) / len(intervals)
+
+        # Convert to BPM (60 seconds / average interval)
+        bpm = int(60 / avg_interval)
+
+        # Clamp to valid BPM range (using constants from constants.py)
+        from constants import MIN_BPM, MAX_BPM
+        bpm = max(MIN_BPM, min(bpm, MAX_BPM))
+
+        return bpm
 
 # Entry point - create and run the application
 if __name__ == "__main__":
-    if check_dependencies():
+    if check_dependencies(check_textual=1):
         app = MetroUI()
         app.run()
     else:
-        print("Cannot start Metronomnom due to missing requirements.")
+        print(CURRENT_LANG["DEPENDENCY_ERROR"])
