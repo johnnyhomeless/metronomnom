@@ -6,3 +6,23 @@
     padding: 20px; 
     text-align: center;
 }
+
+.slider:hover {
+    opacity: 1; /* Fully shown on mouse-over */
+    cursor: pointer; /* Cursor on hover */
+}
+
+.button {
+    border-radius: 12px;
+    font-size: 12px;
+    border: none;
+    padding: 10px 24px;
+    justify-content: center;
+}
+
+.button-container {
+    display: flex;
+    justify-content: center; /* Centers buttons horizontally */
+    gap: 10px; /* Adds space between buttons */
+    margin-top: 10px; /* Adds spacing above the buttons */
+}

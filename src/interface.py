@@ -3,6 +3,7 @@ from textual.widgets import Static, Input, Button
 from textual.containers import Horizontal
 from textual import on
 import time
+from textual_slider import Slider
 
 # Import constants for commands and language settings
 from constants import (

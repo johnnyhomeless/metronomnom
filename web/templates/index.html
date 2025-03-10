@@ -24,24 +24,35 @@
     </div>
 
     <div class="box">
+        <input type="range" min="10" max="400" value="120" class="slider" id="myRange">
         <input type="number" id="bpm-input" min="10" max="400" value="120">
         <select id="time-signature">
+            <option value="1">1/4</option>
             <option value="2">2/4</option>
             <option value="3">3/4</option>
             <option value="4" selected>4/4</option>
             <option value="5">5/4</option>
             <option value="6">6/4</option>
+            <option value="7">7/4</option>
+            <option value="8">8/4</option>
+            <option value="9">9/4</option>
+            <option value="10">10/4</option>
+            <option value="11">11/4</option>
+            <option value="12">12/4</option>
         </select>
-        <button id="start-stop">Start</button>
-        <button id="tap-tempo">Tap Tempo</button>
+        <div class="button-container">
+            <button class="button" id="start-stop">Start</button>
+            <button class="button" id="tap-tempo">Tap Tempo</button>
+        </div>
+        
     </div>
 
     <div class="box">
         <p>Rhythm Mode</p>
-        <button id="mode-normal" class="active">Normal</button>
-        <button id="mode-eighth">Eighth</button>
-        <button id="mode-triplet">Triplet</button>
-        <button id="mode-sixteenth">Sixteenth</button>
+        <button class="button" id="mode-normal" class="active">Normal</button>
+        <button class="button" id="mode-eighth">Eighth</button>
+        <button class="button" id="mode-triplet">Triplet</button>
+        <button class="button" id="mode-sixteenth">Sixteenth</button>
     </div>
 
     <script src="static/js/metronome.js"></script>
