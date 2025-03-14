@@ -1,46 +1,108 @@
-// Constants for timing and BPM limits
-const LOOKAHEAD_MS = 25.0;          // How often to call scheduler function (ms)
-const SCHEDULE_AHEAD_TIME = 0.1;    // How far ahead to schedule audio (seconds)
-const MIN_BPM = 10;                 // Minimum tempo
-const MAX_BPM = 400;                // Maximum tempo
+const LOOKAHEAD_MS = 25.0;
+const SCHEDULE_AHEAD_TIME = 0.1;
+const MIN_BPM = 10;
+const MAX_BPM = 400;
+const MAX_NOTIFICATIONS = 2;
 
-// Metronome state variables
-let bpm = 120;                      // Current tempo
-let nextNoteTime = 0.0;             // When the next note is due
-let notesInQueue = [];              // Notes that have been scheduled
-let isRunning = false;              // Whether metronome is playing
-let currentBeat = 1;                // Current position in measure
-let beatsPerMeasure = 4;            // Time signature numerator
-let rhythmMode = 'normal';          // Current subdivision mode
-let timerID = null;                 // Animation frame ID
-let audioLoaded = false;            // Sound loading status
-let lastDisplayedBeat = 0;          // Track last displayed beat to avoid redundant updates
-
-// Audio system
-let audioContext = null;            // Web Audio API context
-let audioBuffers = {};              // Loaded sound samples
-
-// DOM element references
 const startStopButton = document.getElementById('start-stop');
-const statusDisplay = document.getElementById('status-display');
 const beatDisplay = document.getElementById('beat-display');
 const bpmInput = document.getElementById('bpm-input');
 const timeSignatureSelect = document.getElementById('time-signature');
 const modeButtons = document.querySelectorAll('[id^="mode-"]');
 const bpmSlider = document.getElementById('myRange');
 
-// Initialize audio system and load sound files
+const tempoMarkings = [
+    { min: 10, max: 24, name: "Larghissimo" },
+    { min: 25, max: 39, name: "Grave" },
+    { min: 40, max: 44, name: "Largo" },
+    { min: 45, max: 59, name: "Lento" },
+    { min: 60, max: 65, name: "Larghetto" },
+    { min: 66, max: 71, name: "Adagio" },
+    { min: 72, max: 75, name: "Adagietto" },
+    { min: 76, max: 79, name: "Andante" },
+    { min: 80, max: 82, name: "Andantino" },
+    { min: 83, max: 85, name: "Marcia moderato" },
+    { min: 86, max: 91, name: "Andante moderato" },
+    { min: 92, max: 107, name: "Moderato" },
+    { min: 108, max: 111, name: "Allegretto" },
+    { min: 112, max: 119, name: "Allegro moderato" },
+    { min: 120, max: 167, name: "Allegro" },
+    { min: 168, max: 171, name: "Vivace" },
+    { min: 172, max: 175, name: "Vivacissimo" },
+    { min: 176, max: 199, name: "Allegrissimo (Allegro vivace)" },
+    { min: 200, max: 299, name: "Presto" },
+    { min: 300, max: 400, name: "Prestissimo" }
+];
+
+let bpm = 120;
+let nextNoteTime = 0.0;
+let notesInQueue = [];
+let isRunning = false;
+let currentBeat = 1;
+let beatsPerMeasure = 4;
+let rhythmMode = 'normal';
+let timerID = null;
+let audioLoaded = false;
+let lastDisplayedBeat = 0;
+let tapTimes = [];
+let maxTapAge = 5000;
+let minTapsRequired = 2;
+let activeNotifications = 0;
+let audioContext = null;
+let audioBuffers = {};
+
+function showNotification(message, type = 'info', duration = 3000) {
+    const container = document.getElementById('notification-container');
+    
+    if (activeNotifications >= MAX_NOTIFICATIONS) {
+        if (container.firstChild) {
+            container.firstChild.classList.remove('show');
+            
+            setTimeout(() => {
+                if (container.firstChild) {
+                    container.removeChild(container.firstChild);
+                    activeNotifications--;
+                    
+                    addNotification();
+                }
+            }, 300);
+            return;
+        }
+    } else {
+        addNotification();
+    }
+    
+    function addNotification() {
+        activeNotifications++;
+        
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+    
+        container.appendChild(notification);
+        
+        setTimeout(() => notification.classList.add('show'), 1);
+        
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                container.removeChild(notification);
+                activeNotifications--;
+            }, 300);
+        }, duration);
+    }
+}
+
 function initializeAudio() {
     if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
     if (audioLoaded) return Promise.resolve();
     return Promise.all([
-        loadAudio("static/sounds/4c.wav"),      // Downbeat sound
-        loadAudio("static/sounds/4d.wav"),      // Regular beat sound
-        loadAudio("static/sounds/tripl.wav")    // Subdivision sound
+        loadAudio("static/sounds/4c.wav"),
+        loadAudio("static/sounds/4d.wav"),
+        loadAudio("static/sounds/tripl.wav")
     ]).then(() => audioLoaded = true);
 }
 
-// Load and decode a single audio file
 function loadAudio(fileName) {
     return fetch(fileName)
         .then(response => response.arrayBuffer())
@@ -48,46 +110,6 @@ function loadAudio(fileName) {
         .then(decodedAudio => audioBuffers[fileName] = decodedAudio);
 }
 
-// Start the metronome playback
-function startMetronome() {
-    if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioContext.state === 'suspended') audioContext.resume();
-    if (isRunning) return;
-    if (!audioLoaded) {
-        statusDisplay.textContent = 'Loading sounds...';
-        initializeAudio().then(startMetronomeEngine).catch(() => statusDisplay.textContent = 'Error loading sounds');
-    } else {
-        startMetronomeEngine();
-    }
-}
-
-// Initialize the engine after sounds are loaded
-function startMetronomeEngine() {
-    isRunning = true;
-    currentBeat = 1;
-    notesInQueue = [];
-    nextNoteTime = audioContext.currentTime;
-    scheduler();
-    updateUI(true);
-    updateBeatDisplay(currentBeat);  // Initialize beat display
-}
-
-// Stop the metronome
-function stopMetronome() {
-    if (!isRunning) return;
-    isRunning = false;
-    if (timerID) window.cancelAnimationFrame(timerID);
-    notesInQueue = [];
-    updateUI(false);
-}
-
-// Update UI to reflect metronome state
-function updateUI(running) {
-    startStopButton.textContent = running ? 'Stop' : 'Start';
-    statusDisplay.textContent = running ? 'Metronome started' : 'Metronome stopped';
-}
-
-// Update the beat display
 function updateBeatDisplay(beatNumber) {
     if (beatDisplay && beatNumber !== lastDisplayedBeat) {
         beatDisplay.textContent = beatNumber;
@@ -95,114 +117,241 @@ function updateBeatDisplay(beatNumber) {
     }
 }
 
-// Change the tempo
 function updateBPM(newBPM) {
     bpm = newBPM;
     document.getElementById('current-bpm').textContent = bpm;
-    bpmInput.value = bpm; // Ensure number input is updated
-    bpmSlider.value = bpm; // Ensure slider is updated
+    bpmInput.value = bpm;
+    bpmSlider.value = bpm;
+    
+    updateTempoMarking(bpm);
 }
 
-// Update time signature (beats per measure)
-function setTimeSignature(beats) {
-    beats = parseInt(beats);
-    if (!isNaN(beats) && beats >= 1 && beats <= 9) {
-        beatsPerMeasure = beats;
-        // Reset current beat if it's greater than the new measure length
-        if (currentBeat > beatsPerMeasure) {
-            currentBeat = 1;
-            updateBeatDisplay(currentBeat);
+function updateTempoMarking(bpm) {
+    const tempoElement = document.getElementById('tempo-marking');
+    
+    if (bpm >= 400) {
+        tempoElement.textContent = "Prestissimo 🚀";
+        return;
+    }
+    
+    for (const tempo of tempoMarkings) {
+        if (bpm >= tempo.min && bpm <= tempo.max) {
+            tempoElement.textContent = tempo.name;
+            return;
         }
+    }
+    
+    tempoElement.textContent = "";
+}
+
+function updateUI(running) {
+    startStopButton.textContent = running ? 'Stop' : 'Start';
+    startStopButton.classList.toggle('stopping', running);
+    
+    if (running) {
+        showNotification('Metronome started', 'success');
+    } else {
+        showNotification('Metronome stopped', 'error');
     }
 }
 
-// Calculate timing for next beat and advance counter
+function getSubdivisionCount() {
+    switch (rhythmMode) {
+        case 'eighth': return 2;
+        case 'triplet': return 3;
+        case 'sixteenth': return 4;
+        default: return 1;
+    }
+}
+
 function nextNote() {
     nextNoteTime += 60.0 / bpm;
     currentBeat = currentBeat % beatsPerMeasure + 1;
 }
 
-// Schedule a sound to play at the specified time
 function scheduleNote(beatNumber, time) {
-    if (!audioBuffers["static/sounds/4c.wav"]) return;
+    if (!audioLoaded || !audioBuffers["static/sounds/4c.wav"]) return;
     
-    // Add note to queue with beat number and timing info
     notesInQueue.push({
         beat: beatNumber,
         time: time
     });
     
-    const source = audioContext.createBufferSource();
-    source.buffer = (beatNumber === 1) ? audioBuffers["static/sounds/4c.wav"] : audioBuffers["static/sounds/4d.wav"];
-    source.connect(audioContext.destination);
-    source.start(time);
+    const subdivisions = getSubdivisionCount();
+    
+    if (subdivisions === 1) {
+        const source = audioContext.createBufferSource();
+        source.buffer = (beatNumber === 1) ? 
+            audioBuffers["static/sounds/4c.wav"] : 
+            audioBuffers["static/sounds/4d.wav"];
+        source.connect(audioContext.destination);
+        source.start(time);
+        return;
+    }
+    
+    const beatDuration = 60.0 / bpm;
+    const subdivisionDuration = beatDuration / subdivisions;
+    
+    for (let i = 0; i < subdivisions; i++) {
+        const subdivisionTime = time + (i * subdivisionDuration);
+        const source = audioContext.createBufferSource();
+        
+        if (i === 0) {
+            source.buffer = (beatNumber === 1) ? 
+                audioBuffers["static/sounds/4c.wav"] : 
+                audioBuffers["static/sounds/4d.wav"];
+        } else {
+            source.buffer = audioBuffers["static/sounds/tripl.wav"];
+        }
+        
+        source.connect(audioContext.destination);
+        source.start(subdivisionTime);
+    }
 }
 
-// Main scheduling function - keeps notes queued ahead of current time
 function scheduler() {
-    // Schedule notes ahead of current time
     while (nextNoteTime < audioContext.currentTime + SCHEDULE_AHEAD_TIME) {
         scheduleNote(currentBeat, nextNoteTime);
         nextNote();
     }
     
-    // Check if any notes in the queue are ready to be displayed
     while (notesInQueue.length && notesInQueue[0].time < audioContext.currentTime) {
         updateBeatDisplay(notesInQueue[0].beat);
-        notesInQueue.shift(); // Remove the note we just processed
+        notesInQueue.shift();
     }
     
-    if (isRunning) timerID = window.requestAnimationFrame(scheduler);
+    if (isRunning) {
+        timerID = setTimeout(scheduler, LOOKAHEAD_MS);
+    }
 }
 
-// Set up event listeners when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    initializeAudio();
-    
-    // Start/Stop button
-    startStopButton.addEventListener('click', () => isRunning ? stopMetronome() : startMetronome());
+function startMetronomeEngine() {
+    isRunning = true;
+    currentBeat = 1;
+    notesInQueue = [];
+    nextNoteTime = audioContext.currentTime;
+    scheduler();
+    updateUI(true);
+    updateBeatDisplay(currentBeat);
+}
 
-    // Add mouse wheel support for the slider
+function startMetronome() {
+    if (audioContext.state === 'suspended') audioContext.resume();
+    if (isRunning) return;
+    if (!audioLoaded) {
+        showNotification('Loading sounds...', 'info');
+        initializeAudio()
+            .then(startMetronomeEngine)
+            .catch(() => showNotification('Error loading sounds', 'error'));
+    } else {
+        startMetronomeEngine();
+    }
+}
+
+function stopMetronome() {
+    if (!isRunning) return;
+    isRunning = false;
+    if (timerID) clearTimeout(timerID);
+    notesInQueue = [];
+    updateUI(false);
+}
+
+function setTimeSignature(beats) {
+    beats = parseInt(beats);
+    if (!isNaN(beats) && beats >= 1 && beats <= 12) {
+        beatsPerMeasure = beats;
+        if (currentBeat > beatsPerMeasure) {
+            currentBeat = 1;
+            updateBeatDisplay(currentBeat);
+        }
+        showNotification(`Time signature changed to ${beats}/4`, 'info');
+    }
+}
+
+function calculateTapTempo() {
+    const intervals = [];
+    for (let i = 1; i < tapTimes.length; i++) {
+        intervals.push(tapTimes[i] - tapTimes[i-1]);
+    }
+    
+    const averageInterval = intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length;
+    let calculatedBpm = Math.round(60000 / averageInterval);
+    calculatedBpm = Math.max(MIN_BPM, Math.min(calculatedBpm, MAX_BPM));
+    
+    return calculatedBpm;
+}
+
+function handleTap() {
+    const currentTime = performance.now();
+    tapTimes = tapTimes.filter(time => currentTime - time < maxTapAge);
+    tapTimes.push(currentTime);
+    
+    const tapButton = document.getElementById('tap-tempo');
+    tapButton.classList.add('tapped');
+    
+    setTimeout(() => {
+        tapButton.classList.remove('tapped');
+    }, 100);
+    
+    if (tapTimes.length >= minTapsRequired) {
+        const calculatedBpm = calculateTapTempo();
+        bpmInput.value = calculatedBpm;
+        updateBPM(calculatedBpm);
+    } else {
+        showNotification('Tap again to set tempo...', 'info');
+    }
+}
+
+function setRhythmMode(mode) {
+    rhythmMode = mode;
+    showNotification(`Switched to ${mode} mode`, 'info');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    initializeAudio();
+    showNotification('Welcome to Metronomnom!', 'info', 5000);
+    
+    startStopButton.addEventListener('click', () => isRunning ? stopMetronome() : startMetronome());
+    document.getElementById('tap-tempo').addEventListener('click', handleTap);
+    
+    updateTempoMarking(bpm);
+    setRhythmMode('normal');
+    document.getElementById('mode-normal').classList.add('active');
+    
     bpmSlider.addEventListener('wheel', (event) => {
-        // Prevent the default scroll behavior
         event.preventDefault();
-        
-        // Determine direction (negative deltaY means scrolling up)
         const direction = event.deltaY < 0 ? 1 : -1;
-        
-        // Calculate new BPM value (adjust the increment as needed)
         const increment = 1;
         const newBpm = parseInt(bpmSlider.value) + (direction * increment);
-        
-        // Ensure BPM stays within valid range
         const clampedBpm = Math.min(MAX_BPM, Math.max(MIN_BPM, newBpm));
-        
-        // Update the slider, input field and BPM
         bpmSlider.value = clampedBpm;
         bpmInput.value = clampedBpm;
         updateBPM(clampedBpm);
     });
     
-    // BPM input
     bpmSlider.addEventListener('input', () => {
         const newBpm = parseInt(bpmSlider.value);
-        bpmInput.value = newBpm; // Update the number input as slider moves
+        bpmInput.value = newBpm;
         updateBPM(newBpm);
     });
 
     bpmInput.addEventListener('change', () => {
         const newBpm = parseInt(bpmInput.value);
-        if (!isNaN(newBpm) && newBpm >= MIN_BPM && newBpm <= MAX_BPM) updateBPM(newBpm);
+        if (!isNaN(newBpm) && newBpm >= MIN_BPM && newBpm <= MAX_BPM) {
+            updateBPM(newBpm);
+        } else {
+            showNotification('Please enter a valid BPM between 10 and 400', 'error');
+        }
     });
     
-    // Time signature selector
     timeSignatureSelect.addEventListener('change', () => {
         setTimeSignature(timeSignatureSelect.value);
     });
     
-    // Rhythm mode buttons
     modeButtons.forEach(button => button.addEventListener('click', () => {
-        rhythmMode = button.id.replace('mode-', '');
+        const mode = button.id.replace('mode-', '');
+        setRhythmMode(mode);
         modeButtons.forEach(btn => btn.classList.remove('active'));
         button.classList.add('active');
     }));

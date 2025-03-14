@@ -1,13 +1,18 @@
 <!DOCTYPE html>
-
 <html lang="en">
 
 <head>
     <title>Metronomnom</title>
+    <!-- Add Poppins font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="static/css/styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <body>
+    <!-- Notification container -->
+    <div id="notification-container"></div>
+    
     <div class="box">
         <p>BEAT</p>
         <p id="beat-display">1</p>
@@ -16,11 +21,7 @@
     <div class="box">
         <p>BPM</p>
         <p id="current-bpm">120</p>
-    </div>
-
-    <div class="box">
-        <p>Status</p>
-        <p id="status-display">Welcome to Metronomnom</p>
+        <p id="tempo-marking">Allegro</p>
     </div>
 
     <div class="box">
@@ -44,15 +45,14 @@
             <button class="button" id="start-stop">Start</button>
             <button class="button" id="tap-tempo">Tap Tempo</button>
         </div>
-        
-    </div>
 
-    <div class="box">
-        <p>Rhythm Mode</p>
-        <button class="button" id="mode-normal" class="active">Normal</button>
-        <button class="button" id="mode-eighth">Eighth</button>
-        <button class="button" id="mode-triplet">Triplet</button>
-        <button class="button" id="mode-sixteenth">Sixteenth</button>
+        <p>RHYTHM MODE</p>
+        <div class="button-container">
+            <button class="button active" id="mode-normal">Normal</button>
+            <button class="button" id="mode-eighth">Eighth</button>
+            <button class="button" id="mode-triplet">Triplet</button>
+            <button class="button" id="mode-sixteenth">Sixteenth</button>
+        </div>
     </div>
 
     <script src="static/js/metronome.js"></script>
