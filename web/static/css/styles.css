@@ -103,6 +103,14 @@ body {
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
+/* Add this to your styles.css */
+.note-button {
+    font-family: 'Noto Music', serif;
+    font-size: 22px; /* Larger font only for musical symbols */
+    line-height: 1;
+    padding: 8px 20px; /* Adjust padding to maintain button size */
+}
+
 .button:hover {
     background-color: #00ADB5;
     color: white;
@@ -125,13 +133,12 @@ body {
 
 #notification-container {
     position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
+    top: 20px;           /* Change from bottom to top */
+    right: 20px;
     z-index: 1000;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-end;
     width: auto;
 }
 
@@ -153,7 +160,7 @@ body {
 }
 
 .notification.show {
-    opacity: 1;
+    opacity: 0.85;
     transform: translateY(0);
 }
 
